@@ -383,10 +383,8 @@ require('lazy').setup({
 
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>ss', function()
-        builtin.find_files { cwd = utils.buffer_dir() }
-      end, { desc = '[S]earch File[s]' })
+      vim.keymap.set('n', '<leader>sg', builtin.find_files, { desc = '[S]earch [G]it Files' })
+      vim.keymap.set('n', '<leader>sf', '<cmd>Telescope find_files hidden=true<cr>', { desc = '[S]earch [G]it Files' })
       vim.keymap.set('n', '<leader>sc', builtin.builtin, { desc = '[S]earch Sele[c]t Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
