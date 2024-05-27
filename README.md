@@ -1,6 +1,10 @@
 # kickstart.nvim
 
-## Introduction
+```sh
+git clone https://github.com/gabriel-peleskei/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
+```
+
+# Introduction
 
 A starting point for Neovim that is:
 
