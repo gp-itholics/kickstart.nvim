@@ -103,7 +103,10 @@ vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 vim.opt.relativenumber = true
-
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.foldenable = false
+vim.opt.foldlevel = 99
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = ''
 
@@ -166,9 +169,8 @@ vim.opt.autoindent = true
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
-vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('n', '<leader>n', ':', { desc = 'E[n]ter command mode' })
-vim.keymap.set('n', '##', ':Explore', { desc = '# open explorer' })
+-- vim.keymap.set('i', 'jj', '<Esc>')
+-- vim.keymap.set('n', '<leader>n', ':', { desc = 'E[n]ter command mode' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
@@ -198,6 +200,11 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set('n', '<C-left>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-right>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-down>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-up>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -362,6 +369,18 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
+        defaults = {
+          layout_config = {
+            vertical = {
+              width = 0.9,
+              preview_height = 0.7,
+            },
+            bottom_pane = {
+              height = 0.3,
+            },
+          },
+          layout_strategy = 'vertical',
+        },
         -- defaults = {
         --   mappings = {
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
@@ -386,7 +405,9 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>ss', builtin.find_files, { desc = '[S]earch Git [F]iles' })
-      vim.keymap.set('n', '<leader>sf', '<cmd>Telescope find_files hidden=true<cr>', { desc = '[S]earch [F]iles' })
+      vim.keymap.set('n', '<leader>sf', function()
+        builtin.find_files { hidden = true, no_ignore = true, no_ignore_parent = true }
+      end, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>sc', builtin.builtin, { desc = '[S]earch Sele[c]t Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
@@ -497,11 +518,20 @@ require('lazy').setup({
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
-          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+          local lspdoc = function()
+            require('telescope.builtin').lsp_document_symbols { fname_width = 0.3, symbol_width = 0.7, show_line = true }
+          end
+          map('<leader>ds', lspdoc, '[D]ocument [S]ymbols')
+          map('gs', lspdoc, '[G]o to [S]ymbols')
+          map('<leader>dt', require('telescope.builtin').treesitter, '[D]ocument [T]reesitter')
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+          local lspwok = function()
+            require('telescope.builtin').lsp_dynamic_workspace_symbols { fname_width = 0.6, show_line = true }
+          end
+          map('<leader>ws', lspwok, '[W]orkspace [S]ymbols')
+          map('gw', lspwok, '[G]o to [W]orkspace Symbols')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
@@ -518,6 +548,9 @@ require('lazy').setup({
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+
+          vim.keymap.set({ 'i', 'n', 'v' }, '<C-k>', vim.lsp.buf.hover, { buffer = event.buf, desc = 'Hover Documentation(2)' })
+          vim.keymap.set({ 'i', 'n', 'v' }, '<C-p>', vim.lsp.buf.signature_help, { buffer = event.buf, desc = 'LSP: Show function signature' })
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -847,23 +880,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = {
-        'bash',
-        'c',
-        'diff',
-        'html',
-        'lua',
-        'luadoc',
-        'markdown',
-        'vim',
-        'vimdoc',
-        'php',
-        'css',
-        'javascript',
-        'html',
-        'scss',
-        'twig',
-      },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -902,7 +919,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
@@ -936,5 +953,9 @@ require('lazy').setup({
   },
 })
 
+require('catppuccin').setup {
+  flavour = 'frappe',
+}
+vim.cmd.colorscheme 'catppuccin-frappe'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
