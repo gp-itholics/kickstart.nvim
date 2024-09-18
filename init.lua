@@ -53,6 +53,7 @@ Kickstart Guide:
 
     (If you already know the Neovim basics, you can skip this step.)
 
+
   Once you've completed that, you can continue working through **AND READING** the rest
   of the kickstart init.lua.
 
@@ -795,7 +796,7 @@ require('lazy').setup({
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
           --  completions whenever it has completion options available.
-          ['<C-f>'] = cmp.mapping.complete {},
+          ['<C-space>'] = cmp.mapping.complete {},
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:
