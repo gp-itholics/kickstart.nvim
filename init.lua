@@ -189,6 +189,8 @@ vim.keymap.set('n', 'x', '"_x', { noremap = true })
 vim.keymap.set('v', 'x', '"0x', { noremap = true })
 vim.keymap.set({ 'n', 'v' }, 'pp', '"0p', { noremap = true })
 vim.keymap.set({ 'n', 'v' }, 'PP', '"0P', { noremap = true })
+vim.keymap.set('n', '<leader>o', 'o<esc>', { noremap = true, desc = 'Add new empty line below' })
+vim.keymap.set('n', '<leader>O', 'O<esc>', { noremap = true, desc = 'Add new empty line above' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
