@@ -158,10 +158,12 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
+vim.opt.tabstop = 4
+vim.opt.smarttab = true
+vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.autoindent = true
+vim.opt.smartindent = true
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -179,6 +181,14 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.keymap.set({ 'n', 'v', 'i' }, '<C-s>', '<cmd>:w<CR><Esc><Esc>', { desc = 'Save file and return to normal mode' })
+vim.keymap.set('v', 'c', '"0c', { noremap = true })
+vim.keymap.set('n', 'cc', '"0cc', { noremap = true })
+vim.keymap.set('v', 'd', '"0d', { noremap = true })
+vim.keymap.set('n', 'dd', '"0dd', { noremap = true })
+vim.keymap.set('n', 'x', '"_x', { noremap = true })
+vim.keymap.set('v', 'x', '"0x', { noremap = true })
+vim.keymap.set({ 'n', 'v' }, 'pp', '"0p', { noremap = true })
+vim.keymap.set({ 'n', 'v' }, 'PP', '"0P', { noremap = true })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
