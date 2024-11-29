@@ -165,6 +165,8 @@ vim.opt.expandtab = true
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 
+vim.g.sleuth_exclude = { 'php' }
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -181,14 +183,8 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.keymap.set({ 'n', 'v', 'i' }, '<C-s>', '<cmd>:w<CR><Esc><Esc>', { desc = 'Save file and return to normal mode' })
-vim.keymap.set('v', 'c', '"0c', { noremap = true })
-vim.keymap.set('n', 'cc', '"0cc', { noremap = true })
-vim.keymap.set('v', 'd', '"0d', { noremap = true })
-vim.keymap.set('n', 'dd', '"0dd', { noremap = true })
-vim.keymap.set('n', 'x', '"_x', { noremap = true })
-vim.keymap.set('v', 'x', '"0x', { noremap = true })
-vim.keymap.set({ 'n', 'v' }, 'pp', '"0p', { noremap = true })
-vim.keymap.set({ 'n', 'v' }, 'PP', '"0P', { noremap = true })
+
+vim.keymap.set({ 'n', 'v' }, 'x', '"_x', { noremap = true })
 vim.keymap.set('n', '<leader>o', 'o<esc>', { noremap = true, desc = 'Add new empty line below' })
 vim.keymap.set('n', '<leader>O', 'O<esc>', { noremap = true, desc = 'Add new empty line above' })
 
@@ -256,7 +252,7 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -434,8 +430,12 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>s.', function()
+        builtin.buffers { cwd_only = true, sort_mru = true, sort_lastused = true }
+      end, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader><leader>', function()
+        builtin.oldfiles { cwd_only = true }
+      end, { desc = '[ ] Find existing buffers' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()

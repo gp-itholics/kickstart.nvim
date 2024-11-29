@@ -4,10 +4,10 @@
 -- See the kickstart.nvim README for more information
 return {
   { 'tribela/vim-transparent' },
-  { 'gabriel-peleskei/improved-ft', opts = {
-    use_default_mappings = true,
-    ignore_char_case = true,
-  } },
+  -- { 'gabriel-peleskei/improved-ft', opts = {
+  --   use_default_mappings = true,
+  --   ignore_char_case = true,
+  -- } },
   { 'catppuccin/nvim', name = 'catppuccin', priority = 1000, opts = {
     flavor = 'latte',
   } },
