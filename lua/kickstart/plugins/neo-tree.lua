@@ -11,24 +11,43 @@ return {
   },
   cmd = 'Neotree',
   keys = {
-    { '\\', ':Neotree reveal position=current<CR>', { desc = 'NeoTree reveal' } },
+    { '\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
   },
-  opts = {
-    filesystem = {
-      hijack_netrw_behavior = 'open_current',
-      window = {
-        mappings = {
-          ['\\'] = 'close_window',
+  opts = function(_)
+    vim.api.nvim_set_hl(0, 'NeoTreeNormal', { background = 'NONE' })
+    return {
+      enable_diagnostics = false,
+      async_mode = true,
+      filesystem = {
+        hijack_netrw_behavior = 'open_current',
+        use_libuv_file_watcher = true,
+        scan_mode = 'shallow',
+        window = {
+          position = 'float',
+          mappings = {
+            ['\\'] = 'close_window',
+          },
+          popup = {
+            size = {
+              height = '99%',
+              width = '99%',
+            },
+            position = '50%',
+            border = 'rounded',
+            win_options = {
+              winblend = 100,
+            },
+          },
         },
       },
-    },
-    event_handlers = {
-      {
-        event = 'file_open_requested',
-        handler = function()
-          require('neo-tree.command').execute { action = 'close' }
-        end,
+      event_handlers = {
+        {
+          event = 'file_open_requested',
+          handler = function()
+            require('neo-tree.command').execute { action = 'close' }
+          end,
+        },
       },
-    },
-  },
+    }
+  end,
 }

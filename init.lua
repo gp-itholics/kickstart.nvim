@@ -117,7 +117,7 @@ vim.opt.showmode = false
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.opt.clipboard = 'unnamedplus'
+vim.opt.clipboard = vim.env.SSH_TTY and '' or 'unnamedplus'
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -164,6 +164,7 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.autoindent = true
 vim.opt.smartindent = true
+vim.o.exrc = true
 
 vim.g.sleuth_exclude = { 'php' }
 
@@ -182,7 +183,8 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-vim.keymap.set({ 'n', 'v', 'i' }, '<C-s>', '<cmd>:w<CR><Esc><Esc>', { desc = 'Save file and return to normal mode' })
+vim.keymap.set({ 'n', 'v', 'i', 'x' }, '<C-s>', '<cmd>w<CR><Esc>', { desc = 'Save file and return to normal mode' })
+vim.keymap.set({ 'n', 'v', 'i', 'x' }, '<C-S>', '<cmd>wa<CR><Esc>', { desc = 'Save all files and return to normal mode' })
 
 vim.keymap.set({ 'n', 'v' }, 'x', '"_x', { noremap = true })
 vim.keymap.set('n', '<leader>o', 'o<esc>', { noremap = true, desc = 'Add new empty line below' })
@@ -428,7 +430,11 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sc', builtin.builtin, { desc = '[S]earch Sele[c]t Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+      vim.keymap.set('n', '<leader>sm', builtin.marks, { desc = '[S]earch [M]arks' })
+      vim.keymap.set('n', '<leader>sj', builtin.jumplist, { desc = '[S]earch [J]umplist' })
+      vim.keymap.set('n', '<leader>sd', function()
+        builtin.diagnostics { bufnr = 0 }
+      end, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', function()
         builtin.buffers { cwd_only = true, sort_mru = true, sort_lastused = true }
@@ -527,10 +533,10 @@ require('lazy').setup({
 
           -- Find references for the word under your cursor.
           map('gr', function()
-            require('telescope.builtin').lsp_references { fname_width = 0.5, show_line = true }
+            require('telescope.builtin').lsp_references { fname_width = 0.5, show_line = true, include_declaration = false }
           end, '[G]oto [R]eferences')
 
-          -- Jump to the implementation of the word under your cursor.
+          -- Jump to the implementation of the word under your cursor
           --  Useful when your language has ways of declaring types without an actual implementation.
           map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
 
@@ -878,7 +884,20 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      require('mini.surround').setup {
+        mappings = {
+          add = '<leader>na', -- Add surrounding in Normal and Visual modes
+          delete = '<leader>nd', -- Delete surrounding
+          find = '<leader>nf', -- Find surrounding (to the right)
+          find_left = '<leader>nF', -- Find surrounding (to the left)
+          highlight = '<leader>nh', -- Highlight surrounding
+          replace = '<leader>nr', -- Replace surrounding
+          update_n_lines = '<leader>nn', -- Update `n_lines`
+
+          suffix_last = 'l', -- Suffix to search with "prev" method
+          suffix_next = 'n', -- Suffix to search with "next" method
+        },
+      }
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
