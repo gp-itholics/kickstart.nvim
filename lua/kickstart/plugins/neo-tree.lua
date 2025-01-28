@@ -23,6 +23,7 @@ return {
         use_libuv_file_watcher = true,
         scan_mode = 'shallow',
         window = {
+          line_numbers = true,
           position = 'float',
           mappings = {
             ['\\'] = 'close_window',
