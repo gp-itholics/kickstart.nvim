@@ -79,4 +79,16 @@ return {
       -- },
     },
   },
+  {
+    'simrat39/symbols-outline.nvim',
+    lazy = 'VeryLazy',
+    keys = {
+      {
+        '<leader>tt',
+        mode = { 'n', 'x', 'o' },
+        '<cmd>SymbolsOutline<cr>',
+        desc = 'Show Outline Symbols',
+      },
+    },
+  },
 }

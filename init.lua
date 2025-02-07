@@ -179,9 +179,12 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- vim.keymap.set('n', '<leader>n', ':', { desc = 'E[n]ter command mode' })
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
+vim.keymap.set('n', '<leader>ep', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
+vim.keymap.set('n', '<leader>en', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
+vim.keymap.set('n', '<leader>ee', function()
+  vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR }
+end, { desc = 'Go to next [D]iagnostic message' })
+vim.keymap.set('n', '<leader>ei', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.keymap.set({ 'n', 'v', 'i', 'x' }, '<C-s>', '<cmd>w<CR><Esc>', { desc = 'Save file and return to normal mode' })
 vim.keymap.set({ 'n', 'v', 'i', 'x' }, '<C-S>', '<cmd>wa<CR><Esc>', { desc = 'Save all files and return to normal mode' })
@@ -998,6 +1001,7 @@ require('lazy').setup({
   },
 })
 
+require('symbols-outline').setup()
 require('catppuccin').setup {
   flavour = 'frappe',
 }
