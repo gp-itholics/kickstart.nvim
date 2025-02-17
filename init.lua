@@ -433,6 +433,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sc', builtin.builtin, { desc = '[S]earch Sele[c]t Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+      vim.keymap.set('n', '<leader>sG', '<cmd>LiveGrepAll<cr>', { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sm', builtin.marks, { desc = '[S]earch [M]arks' })
       vim.keymap.set('n', '<leader>sj', builtin.jumplist, { desc = '[S]earch [J]umplist' })
       vim.keymap.set('n', '<leader>sd', function()
@@ -517,6 +518,23 @@ require('lazy').setup({
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
+      vim.api.nvim_create_user_command('LiveGrepAll', function()
+        local args = {
+          'rg',
+          '--color=never',
+          '--no-heading',
+          '--with-filename',
+          '--line-number',
+          '--column',
+          '--smart-case',
+          '--no-ignore',
+          '--hidden',
+        }
+        print('Running ripgrep with args: ' .. vim.inspect(args))
+        require('telescope.builtin').live_grep {
+          vimgrep_arguments = args,
+        }
+      end, {})
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -1001,7 +1019,12 @@ require('lazy').setup({
   },
 })
 
-require('symbols-outline').setup()
+require('symbols-outline').setup {
+  keymaps = {
+    fold = 'left',
+    unfold = 'right',
+  },
+}
 require('catppuccin').setup {
   flavour = 'frappe',
 }
