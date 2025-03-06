@@ -717,6 +717,169 @@ require('lazy').setup({
           end,
         },
       }
+
+      -- PHP Intelephense Konfiguration für OXID eShop
+      local lspconfig = require 'lspconfig'
+      lspconfig.intelephense.setup {
+        settings = {
+          intelephense = {
+            stubs = {
+              'apache',
+              'bcmath',
+              'bz2',
+              'calendar',
+              'com_dotnet',
+              'Core',
+              'ctype',
+              'curl',
+              'date',
+              'dba',
+              'dom',
+              'enchant',
+              'exif',
+              'FFI',
+              'fileinfo',
+              'filter',
+              'fpm',
+              'ftp',
+              'gd',
+              'gettext',
+              'gmp',
+              'hash',
+              'iconv',
+              'imap',
+              'intl',
+              'json',
+              'ldap',
+              'libxml',
+              'mbstring',
+              'meta',
+              'mysqli',
+              'oci8',
+              'odbc',
+              'openssl',
+              'pcntl',
+              'pcre',
+              'PDO',
+              'pdo_ibm',
+              'pdo_mysql',
+              'pdo_pgsql',
+              'pdo_sqlite',
+              'pgsql',
+              'Phar',
+              'posix',
+              'pspell',
+              'readline',
+              'Reflection',
+              'session',
+              'shmop',
+              'SimpleXML',
+              'snmp',
+              'soap',
+              'sockets',
+              'sodium',
+              'SPL',
+              'sqlite3',
+              'standard',
+              'superglobals',
+              'sysvmsg',
+              'sysvsem',
+              'sysvshm',
+              'tidy',
+              'tokenizer',
+              'xml',
+              'xmlreader',
+              'xmlrpc',
+              'xmlwriter',
+              'xsl',
+              'Zend OPcache',
+              'zip',
+              'zlib',
+            },
+            files = {
+              maxSize = 5000000, -- Größere Dateien für OXID-Templates
+            },
+            environment = {
+              includePaths = {
+                -- Füge hier deine OXID-Pfade hinzu
+                -- z.B. "./source", "./vendor"
+              },
+            },
+            completion = {
+              insertUseDeclaration = true,
+              fullyQualifyGlobalConstantsAndFunctions = false,
+              triggerParameterHints = true,
+              maxItems = 100,
+            },
+            format = {
+              enable = true,
+            },
+            diagnostics = {
+              enable = true,
+              run = 'onType', -- onType oder onSave
+            },
+          },
+        },
+        on_attach = function(client, bufnr)
+          -- Aktiviere Formatierung beim Speichern
+          vim.api.nvim_create_autocmd('BufWritePre', {
+            buffer = bufnr,
+            callback = function()
+              vim.lsp.buf.format { bufnr = bufnr }
+            end,
+          })
+        end,
+      }
+
+      -- Erstelle eine neue Datei für OXID-spezifische Snippets
+      require('luasnip').add_snippets('php', {
+        -- OXID-Controller Snippet
+        require('luasnip').snippet({ trig = 'oxidcontroller', name = 'OXID Controller', dscr = 'Create a new OXID controller class' }, {
+          require('luasnip').text_node {
+            '<?php',
+            'namespace OxidEsales\\EshopCommunity\\Application\\Controller;',
+            '',
+            'class MyController extends \\OxidEsales\\Eshop\\Application\\Controller\\FrontendController',
+            '{',
+            '    public function render()',
+            '    {',
+            '        parent::render();',
+            "        return 'my_template.tpl';",
+            '    }',
+            '}',
+          },
+        }),
+
+        -- OXID-Model Snippet
+        require('luasnip').snippet({ trig = 'oxidmodel', name = 'OXID Model', dscr = 'Create a new OXID model class' }, {
+          require('luasnip').text_node {
+            '<?php',
+            'namespace OxidEsales\\EshopCommunity\\Application\\Model;',
+            '',
+            'class MyModel extends \\OxidEsales\\Eshop\\Core\\Model\\BaseModel',
+            '{',
+            "    protected $_sClassName = 'my_table';",
+            '',
+            '    public function __construct()',
+            '    {',
+            '        parent::__construct();',
+            "        $this->init('my_table');",
+            '    }',
+            '}',
+          },
+        }),
+      })
+
+      -- Füge OXID-spezifische Dateitypen hinzu
+      vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+        pattern = { '*.tpl', 'metadata.php', 'composer.json' },
+        callback = function()
+          -- Für OXID-Templates und Konfigurationsdateien
+          vim.opt_local.expandtab = true
+          vim.opt_local.shiftwidth = 4
+          vim.opt_local.tabstop = 4
+        end,
+      })
     end,
   },
 
@@ -964,6 +1127,14 @@ require('lazy').setup({
       -- Prefer git instead of curl in order to improve connectivity in some environments
       require('nvim-treesitter.install').prefer_git = true
       ---@diagnostic disable-next-line: missing-fields
+      opts = opts or {}
+      opts.incremental_selection = {
+        enable = true,
+        keymaps = {
+          node_incremental = 'v',
+          node_decremental = 'V',
+        },
+      }
       require('nvim-treesitter.configs').setup(opts)
 
       -- There are additional nvim-treesitter modules that you can use to interact
