@@ -721,6 +721,10 @@ require('lazy').setup({
       -- PHP Intelephense Konfiguration für OXID eShop
       local lspconfig = require 'lspconfig'
       lspconfig.intelephense.setup {
+        root_dir = function(fname)
+          local util = require 'lspconfig.util'
+          return util.find_git_ancestor(fname) or util.root_pattern('composer.json', '.git', 'package.json')(fname) or vim.loop.cwd()
+        end,
         settings = {
           intelephense = {
             stubs = {
