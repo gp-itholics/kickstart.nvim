@@ -1206,3 +1206,30 @@ require('catppuccin').setup {
 vim.cmd.colorscheme 'catppuccin-frappe'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+--
+function Twig()
+  local orig = vim.fn.tempname()
+  vim.cmd('write! ' .. orig)
+  local mod = vim.fn.tempname()
+  local shell_cmd = 'cat ' .. orig .. '|transpile > ' .. mod
+  vim.fn.system(shell_cmd)
+  vim.cmd('vsplit ' .. mod)
+  vim.cmd 'windo diffthis'
+end
+
+vim.api.nvim_create_user_command('Oxcache', function()
+  local path = './source/tmp/'
+  local comp = './composer.json'
+  if vim.fn.isdirectory(path) == 0 then
+    return
+  end
+  if vim.fn.filereadable(comp) == 0 then
+    return
+  end
+  vim.fn.system 'rm -rf ./source/tmp/*'
+end, {})
+
+vim.keymap.set('n', '<leader>cc', '<cmd>Oxcache<cr>', { desc = '[C]lear Oxid [C]ache' })
+vim.keymap.set('n', '<leader>rt', "<cmd>lua require('spectre').toggle()<cr>", { desc = 'Toggle Spectre' })
+vim.keymap.set('n', '<leader>rr', "<cmd>lua require('spectre').open_visual()<cr>", { desc = 'Search/Replace current word' })
+vim.keymap.set('n', '<leader>rf', "<cmd>lua require('spectre').open_file_search(select_word=true)<cr>", { desc = 'Search/Replace current word' })

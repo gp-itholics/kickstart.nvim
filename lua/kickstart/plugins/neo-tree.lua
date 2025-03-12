@@ -19,6 +19,24 @@ return {
       enable_diagnostics = false,
       async_mode = true,
       filesystem = {
+        commands = {
+          diff_with_current = function(state)
+            local node = state.tree:get_node()
+            if not node or not node.path then
+              print 'no file selected!'
+              return
+            end
+            local current_file = vim.fn.expand '%'
+            if current_file == '' then
+              print 'no current file in buffer'
+              return
+            end
+
+            vim.cmd 'Neotree close'
+            vim.cmd('vert split' .. vim.fn.fnameescape(node.path))
+            vim.cmd 'windo diffthis'
+          end,
+        },
         hijack_netrw_behavior = 'open_current',
         use_libuv_file_watcher = true,
         scan_mode = 'shallow',
@@ -27,6 +45,7 @@ return {
           position = 'float',
           mappings = {
             ['\\'] = 'close_window',
+            ['D'] = 'diff_with_current',
           },
           popup = {
             size = {
