@@ -94,5 +94,50 @@ return {
   {
     'nvim-pack/nvim-spectre',
     lazy = 'VeryLazy',
+    opts = {
+      open_cmd = function()
+        -- Create a floating window
+        local width = math.floor(vim.o.columns * 0.9)
+        local height = math.floor(vim.o.lines * 0.9)
+        local row = math.floor((vim.o.lines - height) / 2)
+        local col = math.floor((vim.o.columns - width) / 2)
+
+        -- Create the floating window
+        local opts = {
+          relative = 'editor',
+          width = width,
+          height = height,
+          row = row,
+          col = col,
+          style = 'minimal',
+          border = 'rounded',
+        }
+
+        local bufnr = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_open_win(bufnr, true, opts)
+        return bufnr
+      end,
+      replace_engine = {
+        ['sed'] = {
+          cmd = 'gsed',
+          args = nil,
+          options = {
+            ['ignore-case'] = {
+              value = '--ignore-case',
+              icon = '[I]',
+              desc = 'ignore case',
+            },
+          },
+        },
+      },
+      default = {
+        find = {
+          cmd = 'rg',
+          options = { 'ignore-case' },
+        },
+      },
+      is_block_ui_break = true, -- prevent UI rendering issues
+    },
   },
+  { 'stephpy/vim-php-cs-fixer' },
 }

@@ -799,15 +799,17 @@ require('lazy').setup({
               'Zend OPcache',
               'zip',
               'zlib',
-            },
-            files = {
-              maxSize = 5000000, -- Größere Dateien für OXID-Templates
+              'redis',
             },
             environment = {
+              phpVersion = vim.g.intelephense_phpVersion or nil,
               includePaths = {
                 -- Füge hier deine OXID-Pfade hinzu
                 -- z.B. "./source", "./vendor"
               },
+            },
+            files = {
+              maxSize = 5000000, -- Größere Dateien für OXID-Templates
             },
             completion = {
               insertUseDeclaration = true,
@@ -829,61 +831,12 @@ require('lazy').setup({
           vim.api.nvim_create_autocmd('BufWritePre', {
             buffer = bufnr,
             callback = function()
+              print 'lsp format intelephense'
               vim.lsp.buf.format { bufnr = bufnr }
             end,
           })
         end,
       }
-
-      -- Erstelle eine neue Datei für OXID-spezifische Snippets
-      require('luasnip').add_snippets('php', {
-        -- OXID-Controller Snippet
-        require('luasnip').snippet({ trig = 'oxidcontroller', name = 'OXID Controller', dscr = 'Create a new OXID controller class' }, {
-          require('luasnip').text_node {
-            '<?php',
-            'namespace OxidEsales\\EshopCommunity\\Application\\Controller;',
-            '',
-            'class MyController extends \\OxidEsales\\Eshop\\Application\\Controller\\FrontendController',
-            '{',
-            '    public function render()',
-            '    {',
-            '        parent::render();',
-            "        return 'my_template.tpl';",
-            '    }',
-            '}',
-          },
-        }),
-
-        -- OXID-Model Snippet
-        require('luasnip').snippet({ trig = 'oxidmodel', name = 'OXID Model', dscr = 'Create a new OXID model class' }, {
-          require('luasnip').text_node {
-            '<?php',
-            'namespace OxidEsales\\EshopCommunity\\Application\\Model;',
-            '',
-            'class MyModel extends \\OxidEsales\\Eshop\\Core\\Model\\BaseModel',
-            '{',
-            "    protected $_sClassName = 'my_table';",
-            '',
-            '    public function __construct()',
-            '    {',
-            '        parent::__construct();',
-            "        $this->init('my_table');",
-            '    }',
-            '}',
-          },
-        }),
-      })
-
-      -- Füge OXID-spezifische Dateitypen hinzu
-      vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
-        pattern = { '*.tpl', 'metadata.php', 'composer.json' },
-        callback = function()
-          -- Für OXID-Templates und Konfigurationsdateien
-          vim.opt_local.expandtab = true
-          vim.opt_local.shiftwidth = 4
-          vim.opt_local.tabstop = 4
-        end,
-      })
     end,
   },
 
@@ -900,31 +853,50 @@ require('lazy').setup({
         desc = '[F]ormat buffer',
       },
     },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-          return
-        end
-        local disable_filetypes = { c = true, cpp = true }
-        return {
-          timeout_ms = 500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
-        }
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use a sub-list to tell conform to run *until* a formatter
-        -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
-      },
-    },
+
+    opts = function()
+      return {
+        -- log_level = vim.log.levels.DEBUG,
+        notify_on_error = true,
+        format_on_save = function(bufnr)
+          -- Disable "format_on_save lsp_fallback" for languages that don't
+          -- have a well standardized coding style. You can add additional
+          -- languages here or re-enable it for the disabled ones.
+          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+            return
+          end
+          local disable_filetypes = { c = true, cpp = true, php = true }
+          return {
+            timeout_ms = 500,
+            lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+          }
+        end,
+        formatters = {
+          php = {
+            command = 'vendor/bin/php-cs-fixer',
+            args = { 'fix', '--quiet', '$FILENAME' },
+            cwd = require('conform.util').root_file { '.php-cs-fixer.php' },
+            stdin = false,
+            stdout = false,
+            stderr = false,
+          },
+        },
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          -- Conform can also run multiple formatters sequentially
+          -- python = { "isort", "black" },
+          --
+          -- You can use a sub-list to tell conform to run *until* a formatter
+          -- is found.
+          -- javascript = { { "prettierd", "prettier" } },
+          php = {
+            'php',
+            lsp_fallback = 'never',
+          },
+          json = { 'jq' },
+        },
+      }
+    end,
   },
 
   { -- Autocompletion
@@ -1227,9 +1199,25 @@ vim.api.nvim_create_user_command('Oxcache', function()
     return
   end
   vim.fn.system 'rm -rf ./source/tmp/*'
+  print 'Cache cleared...'
+end, {})
+
+vim.api.nvim_create_user_command('Oxlog', function()
+  local path = './source/log/oxideshop.log'
+  if vim.fn.filereadable(path) == 0 then
+    return
+  end
+  io.open(path, 'w'):close()
+  -- Check if the file is open in a buffer
+  local buf = vim.fn.bufnr(path)
+  if buf ~= -1 then
+    vim.cmd 'edit' -- Reload the buffer
+  end
+  print 'oxideshop.log cleared'
 end, {})
 
 vim.keymap.set('n', '<leader>cc', '<cmd>Oxcache<cr>', { desc = '[C]lear Oxid [C]ache' })
+vim.keymap.set('n', '<leader>cl', '<cmd>Oxlog<cr>', { desc = '[C]lear Oxid [L]ogs' })
 vim.keymap.set('n', '<leader>rt', "<cmd>lua require('spectre').toggle()<cr>", { desc = 'Toggle Spectre' })
 vim.keymap.set('n', '<leader>rr', "<cmd>lua require('spectre').open_visual()<cr>", { desc = 'Search/Replace current word' })
-vim.keymap.set('n', '<leader>rf', "<cmd>lua require('spectre').open_file_search(select_word=true)<cr>", { desc = 'Search/Replace current word' })
+vim.keymap.set('n', '<leader>rf', "<cmd>lua require('spectre').open_file_search({select_word=true})<cr>", { desc = 'Search/Replace current word' })
