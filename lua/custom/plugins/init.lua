@@ -140,4 +140,5 @@ return {
     },
   },
   { 'stephpy/vim-php-cs-fixer' },
+  { 'paul-louyot/toggle-quotes.nvim' },
 }

@@ -221,6 +221,24 @@ vim.keymap.set('n', '<C-right>', '<C-w><C-l>', { desc = 'Move focus to the right
 vim.keymap.set('n', '<C-down>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-up>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+local function InitVars()
+  local function file_exists(path)
+    local f = io.open(path, 'r')
+    if f then
+      f:close()
+      return true
+    end
+    return false
+  end
+  local cwd = vim.fn.getcwd()
+  local vars = cwd .. '/.vars.lua'
+  if file_exists(vars) then
+    dofile(vars)
+  end
+end
+
+InitVars()
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -720,7 +738,17 @@ require('lazy').setup({
 
       -- PHP Intelephense Konfiguration für OXID eShop
       local lspconfig = require 'lspconfig'
+      local php_deprecated = vim.g.intelephense_deprecated
+      if php_deprecated == nil then
+        php_deprecated = true
+      end
+      local php_version = vim.g.intelephense_phpVersion
+      if php_version == nil then
+        php_version = '7.4.0'
+      end
+
       lspconfig.intelephense.setup {
+
         root_dir = function(fname)
           local util = require 'lspconfig.util'
           return util.find_git_ancestor(fname) or util.root_pattern('composer.json', '.git', 'package.json')(fname) or vim.loop.cwd()
@@ -802,7 +830,7 @@ require('lazy').setup({
               'redis',
             },
             environment = {
-              phpVersion = vim.g.intelephense_phpVersion or nil,
+              phpVersion = php_version,
               includePaths = {
                 -- Füge hier deine OXID-Pfade hinzu
                 -- z.B. "./source", "./vendor"
@@ -818,11 +846,12 @@ require('lazy').setup({
               maxItems = 100,
             },
             format = {
-              enable = true,
+              enable = false,
             },
             diagnostics = {
               enable = true,
               run = 'onType', -- onType oder onSave
+              deprecated = php_deprecated,
             },
           },
         },
@@ -831,7 +860,6 @@ require('lazy').setup({
           vim.api.nvim_create_autocmd('BufWritePre', {
             buffer = bufnr,
             callback = function()
-              print 'lsp format intelephense'
               vim.lsp.buf.format { bufnr = bufnr }
             end,
           })
@@ -1221,3 +1249,6 @@ vim.keymap.set('n', '<leader>cl', '<cmd>Oxlog<cr>', { desc = '[C]lear Oxid [L]og
 vim.keymap.set('n', '<leader>rt', "<cmd>lua require('spectre').toggle()<cr>", { desc = 'Toggle Spectre' })
 vim.keymap.set('n', '<leader>rr', "<cmd>lua require('spectre').open_visual()<cr>", { desc = 'Search/Replace current word' })
 vim.keymap.set('n', '<leader>rf', "<cmd>lua require('spectre').open_file_search({select_word=true})<cr>", { desc = 'Search/Replace current word' })
+vim.keymap.set('n', '<leader>tq', function()
+  require('toggle-quotes').toggle_quotes()
+end, { desc = '[T]oggle [Q]uotes' })
